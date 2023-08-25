@@ -1,0 +1,9 @@
+*Torch not compiled with CUDA enabled
+
+To install pytorch look here: "https://medium.com/@leennewlife/how-to-setup-pytorch-with-cuda-in-windows-11-635dfa56724b )"
+https://pytorch.org/get-started/locally/
+You should get a command similar to this:
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia 
+
+Depending on the version, you need to install cuda before
+conda install cuda --channel nvidia/label/cuda-11.8.0

@@ -1,5 +1,4 @@
 import logging
-
 import click
 import torch
 from auto_gptq import AutoGPTQForCausalLM
@@ -19,9 +18,12 @@ from transformers import (
     LlamaForCausalLM,
     LlamaTokenizer,
     pipeline,
+    GPT2LMHeadModel,
+    GPT2Tokenizer
 )
 
-from constants import CHROMA_SETTINGS, EMBEDDING_MODEL_NAME, PERSIST_DIRECTORY, MODEL_ID, MODEL_BASENAME
+from constants import CHROMA_SETTINGS, EMBEDDING_MODEL_NAME, PERSIST_DIRECTORY, MODEL_ID, MODEL_BASENAME,\
+    PROMPT_TEMPLATE, GENERATION_CONFIG_NAME
 
 
 def load_model(device_type, model_id, model_basename=None):
@@ -61,7 +63,11 @@ def load_model(device_type, model_id, model_basename=None):
                 kwargs["n_gpu_layers"] = 1000
                 kwargs["n_batch"] = max_ctx_size
             return LlamaCpp(**kwargs)
-
+        elif "mGPT" in model_id:
+            tokenizer = GPT2Tokenizer.from_pretrained(model_id)
+            model = GPT2LMHeadModel.from_pretrained(model_id)
+            # tokenizer = GPT2Tokenizer.from_pretrained("sberbank-ai/mGPT")
+            # model = GPT2LMHeadModel.from_pretrained("sberbank-ai/mGPT")
         else:
             # The code supports all huggingface models that ends with GPTQ and have some variation
             # of .no-act.order or .safetensors in their HF repo.
@@ -97,7 +103,7 @@ def load_model(device_type, model_id, model_basename=None):
             torch_dtype=torch.float16,
             low_cpu_mem_usage=True,
             trust_remote_code=True,
-            # max_memory={0: "15GB"} # Uncomment this line with you encounter CUDA out of memory errors
+            #max_memory={0: "15GB"} # Uncomment this line with you encounter CUDA out of memory errors
         )
         model.tie_weights()
     else:
@@ -106,7 +112,9 @@ def load_model(device_type, model_id, model_basename=None):
         model = LlamaForCausalLM.from_pretrained(model_id)
 
     # Load configuration from the model to avoid warnings
-    generation_config = GenerationConfig.from_pretrained(model_id)
+    generation_config = None
+    if GENERATION_CONFIG_NAME is not None:
+        generation_config = GenerationConfig.from_pretrained(model_id, config_file_name=GENERATION_CONFIG_NAME)
     # see here for details:
     # https://huggingface.co/docs/transformers/
     # main_classes/text_generation#transformers.GenerationConfig.from_pretrained.returns
@@ -192,16 +200,9 @@ def main(device_type, show_sources):
         client_settings=CHROMA_SETTINGS,
     )
     retriever = db.as_retriever()
-    
 
-    template = """Use the following pieces of context to answer the question at the end. If you don't know the answer,\
-    just say that you don't know, don't try to make up an answer.
 
-    {context}
-
-    {history}
-    Question: {question}
-    Helpful Answer:"""
+    template = PROMPT_TEMPLATE
 
     prompt = PromptTemplate(input_variables=["history", "context", "question"], template=template)
     memory = ConversationBufferMemory(input_key="question", memory_key="history")
@@ -215,6 +216,10 @@ def main(device_type, show_sources):
         return_source_documents=True,
         chain_type_kwargs={"prompt": prompt, "memory": memory},
     )
+
+    # Let's print the prompt template
+    print(qa.combine_documents_chain.llm_chain.prompt.template)
+
     # Interactive questions and answers
     while True:
         query = input("\nEnter a query: ")

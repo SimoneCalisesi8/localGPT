@@ -36,7 +36,9 @@ DOCUMENT_MAP = {
 }
 
 # Default Instructor Model
-EMBEDDING_MODEL_NAME = "hkunlp/instructor-large"
+#EMBEDDING_MODEL_NAME = "hkunlp/instructor-large"
+
+EMBEDDING_MODEL_NAME = "intfloat/multilingual-e5-base"
 # You can also choose a smaller model, don't forget to change HuggingFaceInstructEmbeddings
 # to HuggingFaceEmbeddings in both ingest.py and run_localGPT.py
 # EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
@@ -44,8 +46,10 @@ EMBEDDING_MODEL_NAME = "hkunlp/instructor-large"
 # Select the Model ID and model_basename
 # load the LLM for generating Natural Language responses
 
-MODEL_ID = "TheBloke/Llama-2-7B-Chat-GGML"
-MODEL_BASENAME = "llama-2-7b-chat.ggmlv3.q4_0.bin"
+# default model
+# MODEL_ID = "TheBloke/Llama-2-7B-Chat-GGML"
+# MODEL_BASENAME = "llama-2-7b-chat.ggmlv3.q4_0.bin"
+# GENERATION_CONFIG_NAME = "generation_config.json"
 
 # for HF models
 # MODEL_ID = "TheBloke/vicuna-7B-1.1-HF"
@@ -74,5 +78,44 @@ MODEL_BASENAME = "llama-2-7b-chat.ggmlv3.q4_0.bin"
 # MODEL_BASENAME = "wizard-vicuna-13B.ggmlv3.q2_K.bin"
 # MODEL_ID = "TheBloke/orca_mini_3B-GGML"
 # MODEL_BASENAME = "orca-mini-3b.ggmlv3.q4_0.bin"
+
+# multi languages
+# MODEL_ID = "ai-forever/mGPT"
+# MODEL_BASENAME = "pytorch_model.bin"
+# GENERATION_CONFIG_NAME = None
+
+# Cannot load this!
+# MODEL_ID = "OpenBuddy/openbuddy-llama2-13b-v8.1-fp16"
+# MODEL_BASENAME = None
+# MODEL_BASENAME = "pytorch_model-00001-of-00003.bin"
+
+# MODEL_ID = "GroNLP/gpt2-small-italian"
+MODEL_BASENAME = None
+# GENERATION_CONFIG_NAME = "config.json"
+
+# https://github.com/teelinsan/camoscio
+MODEL_ID = "decapoda-research/llama-7b-hf"
+GENERATION_CONFIG_NAME = None
+
+# Default prompt template
+# PROMPT_TEMPLATE = """Use the following pieces of context to answer the question at the end. If you don't know the answer,\
+#     just say that you don't know, don't try to make up an answer.
+#
+#     {context}
+#
+#     {history}
+#     Question: {question}
+#     Helpful Answer:"""
+
+PROMPT_TEMPLATE = """
+    Sei un assistente utile ed onesto. Rispondi sempre nel modo più utile possibile utilizzando il testo di contesto fornito. Le tue risposte dovrebbero rispondere alla domanda solo una volta e non avere alcun testo dopo che la risposta è stata data.
+    Se una domanda non ha alcun senso o non è coerente, spiega perché invece di rispondere a qualcosa di non corretto. Se non conosci la risposta a una domanda, ti preghiamo di non condividere informazioni false. "
+
+    {context}
+
+    {history}
+
+    Domanda: {question}
+    Risposta in italiano:"""
 
 
